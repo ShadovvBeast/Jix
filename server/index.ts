@@ -91,8 +91,17 @@ const server = Bun.serve<WebSocketData>({
     }
 
     // CORS headers for HTTP endpoints
+    const allowedOrigins = [
+      `http://localhost:${CLIENT_PORT}`,
+      'https://jix.sb0.tech',
+      'http://jix.sb0.tech',
+    ];
+    
+    const origin = req.headers.get('origin') || '';
+    const allowOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    
     const headers = {
-      'Access-Control-Allow-Origin': `http://localhost:${CLIENT_PORT}`,
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
