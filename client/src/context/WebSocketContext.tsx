@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import type { WebSocketMessage } from '../hooks/useWebSocket';
 import { useGame } from './GameContext';
+import { WS_URL } from '../config';
 
 interface WebSocketContextType {
   sendMessage: (message: WebSocketMessage) => void;
@@ -20,7 +21,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children 
   // Update WebSocket URL when player/room info changes
   useEffect(() => {
     if (state.playerId && state.roomCode && state.playerName) {
-      const url = `ws://localhost:9188/ws?playerId=${state.playerId}&roomCode=${state.roomCode}&playerName=${encodeURIComponent(state.playerName)}`;
+      const url = `${WS_URL}/ws?playerId=${state.playerId}&roomCode=${state.roomCode}&playerName=${encodeURIComponent(state.playerName)}`;
       setWsUrl(url);
     } else {
       setWsUrl('');

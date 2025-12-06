@@ -8,8 +8,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QrCode, ArrowLeft, LogIn } from 'lucide-react';
-
-const SERVER_URL = 'http://localhost:9188';
+import { API_URL } from '../config';
 
 const JoinRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -57,7 +56,7 @@ const JoinRoom: React.FC = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const checkResponse = await fetch(`${SERVER_URL}/api/rooms/${normalizedCode}`, {
+      const checkResponse = await fetch(`${API_URL}/api/rooms/${normalizedCode}`, {
         signal: controller.signal,
       });
       
@@ -81,7 +80,7 @@ const JoinRoom: React.FC = () => {
       const controller2 = new AbortController();
       const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
 
-      const joinResponse = await fetch(`${SERVER_URL}/api/rooms/${normalizedCode}/join`, {
+      const joinResponse = await fetch(`${API_URL}/api/rooms/${normalizedCode}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

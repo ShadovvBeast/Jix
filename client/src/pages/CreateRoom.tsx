@@ -8,8 +8,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import CategorySelection from '../components/CategorySelection';
-
-const SERVER_URL = 'http://localhost:9188';
+import { API_URL } from '../config';
 
 const CreateRoom: React.FC = () => {
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ const CreateRoom: React.FC = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-      const response = await fetch(`${SERVER_URL}/api/rooms`, {
+      const response = await fetch(`${API_URL}/api/rooms`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
