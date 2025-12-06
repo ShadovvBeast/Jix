@@ -7,8 +7,22 @@
 import type { ServerWebSocket } from 'bun';
 import { wsManager } from './WebSocketManager';
 import { roomManager } from './RoomManager';
+import { GameEngine } from './GameEngine';
+import { GeminiService } from './GeminiService';
 import type { Player } from '../shared/types';
 import { GameState } from '../shared/types';
+import {
+  validateRoomCode,
+  validateCategory,
+  validatePlayerName,
+  validatePlayerId,
+  validateAnswerId,
+  sanitizeInput,
+} from '../shared/validation';
+
+// Initialize game services
+const geminiService = new GeminiService(process.env.GEMINI_API_KEY || '');
+const gameEngine = new GameEngine(geminiService, roomManager);
 
 interface WebSocketData {
   playerId: string;
@@ -96,45 +110,39 @@ const server = Bun.serve<WebSocketData>({
         const { category, hostId, hostName } = body;
 
         // Validate required fields
-        if (!category || typeof category !== 'string') {
+        if (!category || typeof category !== 'string' || !validateCategory(category)) {
           return new Response(JSON.stringify({
-            error: 'Category is required and must be a string',
+            error: 'Category is required and must be a non-empty string',
           }), {
             status: 400,
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
         }
 
-        // Validate category is not empty or whitespace (Requirement 1.5)
-        if (category.trim().length === 0) {
+        if (!hostId || typeof hostId !== 'string' || !validatePlayerId(hostId)) {
           return new Response(JSON.stringify({
-            error: 'Category cannot be empty or contain only whitespace',
+            error: 'Host ID is required and must be a valid player ID',
           }), {
             status: 400,
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
         }
 
-        if (!hostId || typeof hostId !== 'string') {
+        if (!hostName || typeof hostName !== 'string' || !validatePlayerName(hostName)) {
           return new Response(JSON.stringify({
-            error: 'Host ID is required and must be a string',
+            error: 'Host name is required and must be a valid player name',
           }), {
             status: 400,
             headers: { ...headers, 'Content-Type': 'application/json' },
           });
         }
 
-        if (!hostName || typeof hostName !== 'string') {
-          return new Response(JSON.stringify({
-            error: 'Host name is required and must be a string',
-          }), {
-            status: 400,
-            headers: { ...headers, 'Content-Type': 'application/json' },
-          });
-        }
+        // Sanitize inputs
+        const sanitizedCategory = sanitizeInput(category, 100);
+        const sanitizedHostName = sanitizeInput(hostName, 50);
 
-        // Create room
-        const room = roomManager.createRoom(category, hostId, hostName);
+        // Create room with sanitized inputs
+        const room = roomManager.createRoom(sanitizedCategory, hostId, sanitizedHostName);
 
         return new Response(JSON.stringify({
           code: room.code,
@@ -464,16 +472,191 @@ const server = Bun.serve<WebSocketData>({
     /**
      * Handle incoming WebSocket messages
      */
-    message(ws: ServerWebSocket<WebSocketData>, message: string | Buffer) {
+    async message(ws: ServerWebSocket<WebSocketData>, message: string | Buffer) {
       try {
         const data = JSON.parse(message.toString());
         const { playerId, roomCode } = ws.data;
 
         console.log(`Message from ${playerId}:`, data);
 
+        const room = roomManager.getRoom(roomCode);
+        if (!room) {
+          wsManager.sendToPlayer(playerId, {
+            type: 'ERROR',
+            message: 'Room not found',
+          });
+          return;
+        }
+
         // Handle different message types
-        // Additional message handling will be implemented in subsequent tasks
-        // For now, just log the message
+        switch (data.type) {
+          case 'START_GAME':
+            // Requirement 4.2, 4.4: Start game and broadcast to all participants
+            if (!roomManager.isHost(roomCode, playerId)) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Only the host can start the game',
+              });
+              return;
+            }
+
+            const started = roomManager.startGame(roomCode);
+            if (!started) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Failed to start game',
+              });
+              return;
+            }
+
+            // Broadcast GAME_STARTED event
+            wsManager.broadcast(roomCode, {
+              type: 'GAME_STARTED',
+            });
+
+            // Start first round and send question
+            try {
+              const question = await gameEngine.startRound(roomCode);
+              wsManager.broadcast(roomCode, {
+                type: 'QUESTION_RECEIVED',
+                question,
+              });
+            } catch (error) {
+              console.error('Error starting round:', error);
+              wsManager.broadcast(roomCode, {
+                type: 'ERROR',
+                message: 'Failed to generate question',
+              });
+            }
+            break;
+
+          case 'SUBMIT_ANSWER':
+            // Requirement 6.3, 6.4, 9.2: Submit answer and broadcast
+            const { answerId } = data;
+            if (!answerId || !validateAnswerId(answerId)) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Valid answer ID is required',
+              });
+              return;
+            }
+
+            try {
+              const submitted = gameEngine.submitAnswer(roomCode, playerId, answerId);
+              if (!submitted) {
+                wsManager.sendToPlayer(playerId, {
+                  type: 'ERROR',
+                  message: 'Answer already submitted or invalid',
+                });
+                return;
+              }
+
+              // Broadcast that player has answered
+              wsManager.broadcast(roomCode, {
+                type: 'ANSWER_SUBMITTED',
+                playerId,
+              });
+
+              // Check if all players have answered
+              if (gameEngine.hasAllAnswered(roomCode)) {
+                // Transition to SHOWING_RESULTS
+                roomManager.transitionState(roomCode, GameState.SHOWING_RESULTS);
+
+                // End round and get results
+                const results = gameEngine.endRound(roomCode);
+
+                // Broadcast results
+                wsManager.broadcast(roomCode, {
+                  type: 'ROUND_ENDED',
+                  results,
+                });
+              }
+            } catch (error) {
+              console.error('Error submitting answer:', error);
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Failed to submit answer',
+              });
+            }
+            break;
+
+          case 'NEXT_QUESTION':
+            // Requirement 10.2: Host requests next question
+            if (!roomManager.isHost(roomCode, playerId)) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Only the host can request the next question',
+              });
+              return;
+            }
+
+            // Transition back to IN_PROGRESS
+            const transitioned = roomManager.transitionState(roomCode, GameState.IN_PROGRESS);
+            if (!transitioned) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Invalid state transition',
+              });
+              return;
+            }
+
+            // Start next round
+            try {
+              const nextQuestion = await gameEngine.nextRound(roomCode);
+              wsManager.broadcast(roomCode, {
+                type: 'QUESTION_RECEIVED',
+                question: nextQuestion,
+              });
+            } catch (error) {
+              console.error('Error starting next round:', error);
+              wsManager.broadcast(roomCode, {
+                type: 'ERROR',
+                message: 'Failed to generate next question',
+              });
+            }
+            break;
+
+          case 'END_GAME':
+            // Requirement 10.3: Host ends the game
+            if (!roomManager.isHost(roomCode, playerId)) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Only the host can end the game',
+              });
+              return;
+            }
+
+            // Transition to ENDED state
+            const ended = roomManager.transitionState(roomCode, GameState.ENDED);
+            if (!ended) {
+              wsManager.sendToPlayer(playerId, {
+                type: 'ERROR',
+                message: 'Failed to end game',
+              });
+              return;
+            }
+
+            // Calculate final scores
+            const finalScores = gameEngine.calculateScores(roomCode);
+
+            // Broadcast GAME_ENDED event
+            wsManager.broadcast(roomCode, {
+              type: 'GAME_ENDED',
+              finalScores,
+            });
+
+            // Clean up round state
+            gameEngine.clearRoundState(roomCode);
+
+            // Close room after a delay to allow clients to receive the message
+            setTimeout(() => {
+              roomManager.closeRoom(roomCode);
+            }, 1000);
+            break;
+
+          default:
+            console.log(`Unknown message type: ${data.type}`);
+        }
         
       } catch (error) {
         console.error('Error processing WebSocket message:', error);

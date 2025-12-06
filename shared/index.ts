@@ -22,3 +22,13 @@ export { GameState } from './types';
 
 // Export all utilities
 export { generateRoomCode, encodeQRCode, decodeQRCode } from './utils';
+
+// Export validation functions
+export {
+  validateRoomCode,
+  validateCategory,
+  validatePlayerName,
+  validatePlayerId,
+  sanitizeInput,
+  validateAnswerId,
+} from './validation';

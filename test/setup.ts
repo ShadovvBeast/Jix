@@ -2,6 +2,7 @@
 import { expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import '@testing-library/jest-dom/vitest';
 
 // Load .env file for tests
 try {

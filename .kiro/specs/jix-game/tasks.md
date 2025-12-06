@@ -273,7 +273,12 @@
   - Test host-only endpoint authorization
   - _Requirements: 2.1, 3.2, 3.3_
 
-- [ ] 8. Build React frontend foundation
+- [x] 8. Build React frontend foundation
+
+
+
+
+
   - Set up Vite project with React and TypeScript
   - Configure Tailwind CSS for styling
   - Create React Router setup with routes
@@ -282,7 +287,12 @@
   - Add error boundary component
   - _Requirements: 8.2_
 
-- [ ] 9. Implement CategorySelection component
+- [x] 9. Implement CategorySelection component
+
+
+
+
+
   - Create UI with text input for custom categories
   - Add predefined category buttons below input
   - Implement category validation (non-empty, non-whitespace)
@@ -291,22 +301,36 @@
   - Handle loading and error states
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ]* 9.1 Write property test for non-empty category validation
+- [x] 9.1 Write property test for non-empty category validation
+
+
+
   - **Property 25: Non-empty category validation**
   - **Validates: Requirements 1.4**
 
-- [ ]* 9.2 Write property test for empty category rejection
+- [x] 9.2 Write property test for empty category rejection
+
+
+
   - **Property 26: Empty category rejection**
   - **Validates: Requirements 1.5**
 
-- [ ]* 9.3 Write unit tests for CategorySelection component
+- [x] 9.3 Write unit tests for CategorySelection component
+
+
+
   - Test input field renders on mount
   - Test category buttons render on mount
   - Test button click triggers callback with correct category
   - Test empty input shows error
   - _Requirements: 1.1, 1.2, 1.3, 1.5_
 
-- [ ] 10. Implement RoomLobby component
+- [x] 10. Implement RoomLobby component
+
+
+
+
+
   - Display room code prominently
   - Generate and display QR code using qrcode library
   - Show list of joined participants with real-time updates
@@ -315,13 +339,21 @@
   - Listen for PLAYER_JOINED and PLAYER_LEFT WebSocket events
   - _Requirements: 2.2, 2.3, 3.5, 4.1_
 
-- [ ]* 10.1 Write unit tests for RoomLobby component
+- [x] 10.1 Write unit tests for RoomLobby component
+
+
+
   - Test room code and QR code display
   - Test participant list rendering
   - Test start button visibility for host vs non-host
   - _Requirements: 2.3, 4.1_
 
-- [ ] 11. Implement JoinRoom component
+- [x] 11. Implement JoinRoom component
+
+
+
+
+
   - Create room code input field with validation
   - Add QR code scanner integration (using device camera)
   - Implement room join API call
@@ -330,13 +362,20 @@
   - Redirect to lobby on successful join
   - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ]* 11.1 Write unit tests for JoinRoom component
+- [x] 11.1 Write unit tests for JoinRoom component
+
+
+
   - Test room code input validation
   - Test error display for invalid room codes
   - Test successful join redirects to lobby
   - _Requirements: 3.2, 3.3_
 
-- [ ] 12. Implement QuestionDisplay component
+- [x] 12. Implement QuestionDisplay component
+
+
+
+
   - Display question text prominently
   - Render answer options as clickable buttons
   - Add optional countdown timer display
@@ -345,13 +384,20 @@
   - Handle answer submission via WebSocket
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ]* 12.1 Write unit tests for QuestionDisplay component
+- [x] 12.1 Write unit tests for QuestionDisplay component
+
+
   - Test question and options render correctly
   - Test answer selection triggers callback
   - Test buttons disabled after submission
   - _Requirements: 6.2, 6.4_
 
-- [ ] 13. Implement ScoreBoard component
+- [x] 13. Implement ScoreBoard component
+
+
+
+
+
   - Display all participants with their current scores
   - Implement ranking display (1st, 2nd, 3rd, etc.)
   - Highlight current user's score
@@ -359,13 +405,21 @@
   - Update scores in real-time from WebSocket events
   - _Requirements: 7.3, 7.4_
 
-- [ ]* 13.1 Write unit tests for ScoreBoard component
+- [x] 13.1 Write unit tests for ScoreBoard component
+
+
+
   - Test scores display in correct order
   - Test current user highlighting
   - Test ranking labels
   - _Requirements: 7.3, 7.4_
 
-- [ ] 14. Implement ResultsDisplay component
+- [x] 14. Implement ResultsDisplay component
+
+
+
+
+
   - Show the correct answer highlighted
   - Display which participants answered correctly/incorrectly
   - Show updated scores after the round
@@ -374,13 +428,21 @@
   - Handle next round trigger via WebSocket
   - _Requirements: 6.5, 7.3, 10.1, 10.2_
 
-- [ ]* 14.1 Write unit tests for ResultsDisplay component
+- [x] 14.1 Write unit tests for ResultsDisplay component
+
+
+
   - Test correct answer is highlighted
   - Test participant answer status display
   - Test next button visibility for host only
   - _Requirements: 6.5, 10.1_
 
-- [ ] 15. Implement game state management and flow
+- [x] 15. Implement game state management and flow
+
+
+
+
+
   - Connect all components with WebSocket event handlers
   - Implement state transitions (LOBBY → IN_PROGRESS → SHOWING_RESULTS)
   - Handle GAME_STARTED event to show first question
@@ -390,19 +452,34 @@
   - Implement automatic room cleanup on game end
   - _Requirements: 4.2, 4.3, 6.5, 9.3, 9.4, 10.2, 10.3_
 
-- [ ]* 15.1 Write property test for game start state transition
+- [x] 15.1 Write property test for game start state transition
+
+
+
   - **Property 7: Game start state transition**
   - **Validates: Requirements 4.2, 4.3**
 
-- [ ]* 15.2 Write property test for round completion trigger
+- [x] 15.2 Write property test for round completion trigger
+
+
+
   - **Property 15: Round completion trigger**
   - **Validates: Requirements 6.5, 9.3**
 
-- [ ]* 15.3 Write property test for next round initiation
+
+- [x] 15.3 Write property test for next round initiation
+
+
+
   - **Property 22: Next round initiation**
   - **Validates: Requirements 10.2**
 
-- [ ] 16. Implement host controls and game termination
+- [x] 16. Implement host controls and game termination
+
+
+
+
+
   - Add "End Game" button for host in game view
   - Implement game termination API call
   - Handle graceful disconnection of all participants
@@ -411,15 +488,27 @@
   - Add cleanup logic for closed rooms
   - _Requirements: 10.3, 10.4, 10.5_
 
-- [ ]* 16.1 Write property test for game termination cleanup
+
+- [x] 16.1 Write property test for game termination cleanup
+
+
   - **Property 23: Game termination cleanup**
   - **Validates: Requirements 10.3, 10.4**
 
-- [ ]* 16.2 Write property test for host disconnection handling
+
+- [x] 16.2 Write property test for host disconnection handling
+
+
+
   - **Property 24: Host disconnection handling**
   - **Validates: Requirements 10.5**
 
-- [ ] 17. Add error handling and edge cases
+- [x] 17. Add error handling and edge cases
+
+
+
+
+
   - Implement WebSocket reconnection logic with exponential backoff
   - Add timeout handling for question generation (30 seconds)
   - Implement fallback UI for Gemini API failures
@@ -428,16 +517,29 @@
   - Add validation for all user inputs
   - _Requirements: 5.5, 9.5_
 
-- [ ]* 17.1 Write unit tests for error scenarios
+- [x] 17.1 Write unit tests for error scenarios
+
+
+
   - Test WebSocket reconnection attempts
   - Test API timeout handling
   - Test network error displays
   - _Requirements: 5.5_
 
-- [ ] 18. Checkpoint - Ensure all tests pass
+
+- [x] 18. Checkpoint - Ensure all tests pass
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 19. Polish UI and add final touches
+- [x] 19. Polish UI and add final touches
+
+
+
+
+
   - Implement responsive design for mobile and desktop
   - Add loading spinners and skeleton screens
   - Implement smooth transitions between game states
@@ -446,11 +548,19 @@
   - Add favicon and meta tags
   - _Requirements: 1.1, 1.2_
 
-- [ ]* 19.1 Write integration tests for complete game flow
+- [x] 19.1 Write integration tests for complete game flow
+
+
+
   - Test full flow: create room → join → start → answer questions → view results → end game
   - Test multiple participants playing simultaneously
   - Test host controls throughout game
   - _Requirements: All_
 
-- [ ] 20. Final checkpoint - Ensure all tests pass
+- [x] 20. Final checkpoint - Ensure all tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
