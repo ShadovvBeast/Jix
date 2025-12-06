@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Play, QrCode, Copy, Check } from 'lucide-react';
 import QRCode from 'qrcode';
 import type { Player } from '../../../shared/types';
-import LoadingSpinner from './LoadingSpinner';
 
 interface RoomLobbyProps {
   roomCode: string;
@@ -21,6 +22,7 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
   error,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [copied, setCopied] = React.useState(false);
 
   useEffect(() => {
     if (canvasRef.current && roomCode) {
@@ -33,99 +35,238 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
     }
   }, [roomCode]);
 
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(roomCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-6 md:p-8 fade-in">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-6">
-          Room Lobby
-        </h2>
-
-        {/* Error Display */}
-        {error && (
-          <div 
-            className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded slide-in"
-            role="alert"
-          >
-            {error}
+    <div className="min-h-screen animated-gradient flex items-center justify-center p-4">
+      <motion.div
+        className="max-w-2xl w-full glass rounded-3xl shadow-2xl p-6 md:p-8"
+        initial={{ scale: 0.8, opacity: 0, y: 50 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{
+          type: 'spring',
+          stiffness: 100,
+          damping: 15,
+        }}
+      >
+        <motion.div
+          className="text-center mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Users className="text-purple-600" size={32} />
+            <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+              Game Lobby
+            </h2>
           </div>
-        )}
+        </motion.div>
 
-        {/* Room Code Display */}
-        <div className="mb-8 text-center">
-          <p className="text-sm text-gray-600 mb-2" id="room-code-label">Room Code</p>
-          <p 
-            className="text-3xl md:text-4xl font-bold text-blue-600 tracking-wider"
-            aria-labelledby="room-code-label"
-            role="text"
-          >
-            {roomCode}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              className="mb-4 bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-2xl font-semibold"
+              role="alert"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          className="mb-8 text-center"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <p className="text-sm text-gray-600 mb-2 font-semibold" id="room-code-label">
+            Room Code
           </p>
-        </div>
+          <div className="flex items-center justify-center gap-3">
+            <motion.p
+              className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600 tracking-wider"
+              aria-labelledby="room-code-label"
+              role="text"
+              whileHover={{ scale: 1.05 }}
+            >
+              {roomCode}
+            </motion.p>
+            <motion.button
+              onClick={handleCopyCode}
+              className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl shadow-lg"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label="Copy room code"
+            >
+              {copied ? <Check size={20} /> : <Copy size={20} />}
+            </motion.button>
+          </div>
+        </motion.div>
 
-        {/* QR Code Display */}
-        <div className="mb-8 flex justify-center">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <canvas 
-              ref={canvasRef} 
+        <motion.div
+          className="mb-8 flex justify-center"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 100, delay: 0.2 }}
+        >
+          <div className="glass p-4 rounded-2xl shadow-xl relative">
+            <motion.div
+              className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full"
+              animate={{
+                scale: [1, 1.2, 1],
+                rotate: [0, 10, -10, 0],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <QrCode size={20} />
+            </motion.div>
+            <canvas
+              ref={canvasRef}
               aria-label={`QR code for room ${roomCode}`}
               role="img"
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Participants List */}
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Players ({participants.length})
-          </h3>
-          <div className="space-y-2" role="list" aria-label="Players in room">
-            {participants.map((participant, index) => (
-              <div
-                key={participant.id}
-                role="listitem"
-                className="flex items-center justify-between bg-gray-50 p-3 rounded-lg transition-all hover:bg-gray-100 slide-in"
-                style={{ animationDelay: `${index * 0.05}s` }}
-                aria-label={`${participant.name}${participant.isHost ? ', host' : ''}`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold"
-                    aria-hidden="true"
-                  >
-                    {participant.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-medium text-gray-800">
-                    {participant.name}
-                  </span>
-                </div>
-                {participant.isHost && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full">
-                    Host
-                  </span>
-                )}
-              </div>
-            ))}
+        <motion.div
+          className="mb-8"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-black text-gray-800 flex items-center gap-2">
+              <Users size={24} className="text-purple-600" />
+              Players ({participants.length})
+            </h3>
           </div>
-        </div>
+          <motion.div
+            className="space-y-2"
+            role="list"
+            aria-label="Players in room"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.05,
+                },
+              },
+            }}
+          >
+            <AnimatePresence>
+              {participants.map((participant, index) => (
+                <motion.div
+                  key={participant.id}
+                  role="listitem"
+                  className="flex items-center justify-between glass-dark p-4 rounded-2xl transition-all"
+                  aria-label={`${participant.name}${participant.isHost ? ', host' : ''}`}
+                  variants={{
+                    hidden: { x: -50, opacity: 0 },
+                    visible: {
+                      x: 0,
+                      opacity: 1,
+                      transition: {
+                        type: 'spring',
+                        stiffness: 100,
+                      },
+                    },
+                  }}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ x: 50, opacity: 0 }}
+                  whileHover={{ scale: 1.02, x: 5 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-black text-lg shadow-lg"
+                      aria-hidden="true"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 200,
+                        delay: index * 0.05,
+                      }}
+                    >
+                      {participant.name.charAt(0).toUpperCase()}
+                    </motion.div>
+                    <span className="font-bold text-white text-lg">
+                      {participant.name}
+                    </span>
+                  </div>
+                  {participant.isHost && (
+                    <motion.span
+                      className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-black rounded-full shadow-lg"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200 }}
+                    >
+                      HOST
+                    </motion.span>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
 
-        {/* Start Game Button or Waiting Message */}
         {isHost ? (
-          <button
+          <motion.button
             onClick={onStartGame}
             aria-label="Start the game"
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all hover:scale-105 focus:ring-4 focus:ring-green-300"
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black py-4 px-6 rounded-2xl shadow-2xl text-lg relative overflow-hidden group"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
-            Start Game
-          </button>
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              <Play size={24} />
+              Start Game
+            </span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500"
+              initial={{ x: '-100%' }}
+              whileHover={{ x: 0 }}
+              transition={{ duration: 0.3 }}
+            />
+          </motion.button>
         ) : (
-          <div className="text-center py-3 px-6 bg-gray-100 rounded-lg" role="status" aria-live="polite">
-            <div className="inline-flex items-center gap-2 text-gray-600">
-              <LoadingSpinner size="sm" />
+          <motion.div
+            className="text-center py-4 px-6 glass-dark rounded-2xl"
+            role="status"
+            aria-live="polite"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <div className="inline-flex items-center gap-3 text-white font-bold">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              >
+                <Users size={24} />
+              </motion.div>
               <p>Waiting for host to start the game...</p>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

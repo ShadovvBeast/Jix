@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import { useWebSocketContext } from '../context/WebSocketContext';
 import QuestionDisplay from '../components/QuestionDisplay';
@@ -53,83 +54,103 @@ const Game: React.FC = () => {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-8">
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
+      <div className="min-h-screen animated-gradient flex items-center justify-center p-4">
+        <motion.div
+          className="max-w-2xl w-full glass rounded-3xl shadow-2xl p-8"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+        >
+          <h2 className="text-3xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-6">
             Connecting...
           </h2>
-          <p className="text-center text-gray-600 mb-4">
+          <p className="text-center text-gray-700 mb-4 font-semibold">
             Establishing connection to game server
           </p>
           
-          {/* Show WebSocket error if present */}
           {wsError && (
-            <div className="mt-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <motion.div
+              className="mt-4 bg-yellow-100 border-2 border-yellow-400 text-yellow-700 px-4 py-3 rounded-2xl font-semibold"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               <p className="text-sm">{wsError}</p>
               {wsError.includes('failed') && (
-                <button
+                <motion.button
                   onClick={reconnect}
-                  className="mt-2 w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+                  className="mt-2 w-full bg-blue-500 text-white py-2 px-4 rounded-xl hover:bg-blue-600 transition-colors font-bold"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Try Again
-                </button>
+                </motion.button>
               )}
-            </div>
+            </motion.div>
           )}
           
-          {/* Loading spinner */}
           {!wsError?.includes('failed') && (
             <div className="flex justify-center mt-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <motion.div
+                className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              />
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
+    <div className="min-h-screen animated-gradient flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
-        {/* Error Display */}
-        {state.error && (
-          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {state.error}
-          </div>
-        )}
+        <AnimatePresence>
+          {state.error && (
+            <motion.div
+              className="mb-4 bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-2xl font-semibold"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {state.error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Game State: IN_PROGRESS - Show Question */}
         {state.gameState === 'IN_PROGRESS' && state.currentQuestion && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <QuestionDisplay
               question={state.currentQuestion}
               onAnswerSubmit={handleAnswerSubmit}
               hasAnswered={state.currentAnswer !== null}
             />
             
-            {/* Show scoreboard below question */}
             <ScoreBoard
               scores={state.scores}
               currentUserId={state.playerId || ''}
             />
 
-            {/* Host controls */}
             {state.isHost && (
-              <div className="bg-white rounded-lg shadow-xl p-4">
-                <button
+              <motion.div
+                className="glass rounded-2xl shadow-xl p-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <motion.button
                   onClick={handleEndGame}
-                  className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors"
+                  className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-4 rounded-xl font-bold shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   End Game
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
           </div>
         )}
 
-        {/* Game State: SHOWING_RESULTS - Show Results */}
         {state.gameState === 'SHOWING_RESULTS' && state.roundResults && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <ResultsDisplay
               question={state.roundResults.question}
               correctAnswerId={state.roundResults.correctAnswerId}
@@ -139,34 +160,51 @@ const Game: React.FC = () => {
               onNextQuestion={handleNextQuestion}
             />
             
-            {/* Host controls - End Game button */}
             {state.isHost && (
-              <div className="bg-white rounded-lg shadow-xl p-4">
-                <button
+              <motion.div
+                className="glass rounded-2xl shadow-xl p-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <motion.button
                   onClick={handleEndGame}
-                  className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors"
+                  className="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-4 rounded-xl font-bold shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   End Game
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
           </div>
         )}
 
-        {/* Game State: ENDED - Show Final Scores */}
         {state.gameState === 'ENDED' && (
-          <div className="bg-white rounded-lg shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
-              Game Over!
-            </h2>
+          <motion.div
+            className="glass rounded-3xl shadow-2xl p-8"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <motion.h2
+              className="text-4xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-6"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              🎉 Game Over! 🎉
+            </motion.h2>
             <ScoreBoard
               scores={state.scores}
               currentUserId={state.playerId || ''}
             />
-            <p className="text-center text-gray-600 mt-6">
+            <motion.p
+              className="text-center text-gray-600 mt-6 font-semibold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
               Returning to home in a few seconds...
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         )}
       </div>
     </div>

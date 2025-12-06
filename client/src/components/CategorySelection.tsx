@@ -6,6 +6,8 @@
  */
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Brain, Globe, Trophy, Film, Music, Cpu, BookOpen, Send } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
 interface CategorySelectionProps {
@@ -15,14 +17,14 @@ interface CategorySelectionProps {
 }
 
 const PREDEFINED_CATEGORIES = [
-  'Science',
-  'History',
-  'Geography',
-  'Sports',
-  'Movies',
-  'Music',
-  'Technology',
-  'Literature',
+  { name: 'Science', icon: Brain, gradient: 'from-green-400 to-emerald-600' },
+  { name: 'History', icon: BookOpen, gradient: 'from-amber-400 to-orange-600' },
+  { name: 'Geography', icon: Globe, gradient: 'from-blue-400 to-cyan-600' },
+  { name: 'Sports', icon: Trophy, gradient: 'from-yellow-400 to-orange-500' },
+  { name: 'Movies', icon: Film, gradient: 'from-purple-400 to-pink-600' },
+  { name: 'Music', icon: Music, gradient: 'from-pink-400 to-rose-600' },
+  { name: 'Technology', icon: Cpu, gradient: 'from-indigo-400 to-blue-600' },
+  { name: 'Literature', icon: BookOpen, gradient: 'from-teal-400 to-green-600' },
 ];
 
 const CategorySelection: React.FC<CategorySelectionProps> = ({
@@ -83,17 +85,57 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 200,
+        damping: 15,
+      },
+    },
+  };
+
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">
-        Select a Category
-      </h2>
+      <motion.div
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="text-center mb-6"
+      >
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Sparkles className="text-yellow-500" size={24} />
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+            Choose Your Challenge
+          </h2>
+          <Sparkles className="text-yellow-500" size={24} />
+        </div>
+        <p className="text-gray-600 text-sm">Pick a category or create your own!</p>
+      </motion.div>
 
       {/* Custom Category Input (Requirements 1.1, 1.4, 1.5) */}
-      <form onSubmit={handleCustomSubmit} className="mb-6">
+      <motion.form
+        onSubmit={handleCustomSubmit}
+        className="mb-6"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
         <div className="space-y-2">
-          <label htmlFor="custom-category" className="block text-sm font-medium text-gray-700">
-            Custom Category
+          <label htmlFor="custom-category" className="block text-sm font-bold text-gray-700">
+            ✨ Custom Category
           </label>
           <div className="flex gap-2">
             <input
@@ -101,17 +143,19 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
               type="text"
               value={customCategory}
               onChange={handleInputChange}
-              placeholder="Enter a custom category..."
+              placeholder="Enter your own category..."
               disabled={isLoading}
               aria-invalid={!!validationError}
               aria-describedby={validationError ? "category-error" : undefined}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+              className="flex-1 px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
             />
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
               aria-label="Create room with custom category"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               {isLoading ? (
                 <>
@@ -119,51 +163,87 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
                   <span>Creating...</span>
                 </>
               ) : (
-                'Create'
+                <>
+                  <Send size={18} />
+                  <span>Go</span>
+                </>
               )}
-            </button>
+            </motion.button>
           </div>
           
           {/* Validation Error Display (Requirement 1.5) */}
-          {validationError && (
-            <p id="category-error" className="text-sm text-red-600 slide-in" role="alert">
-              {validationError}
-            </p>
-          )}
+          <AnimatePresence>
+            {validationError && (
+              <motion.p
+                id="category-error"
+                className="text-sm text-red-600 font-medium"
+                role="alert"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                ⚠️ {validationError}
+              </motion.p>
+            )}
+          </AnimatePresence>
           
           {/* API Error Display */}
-          {error && (
-            <p className="text-sm text-red-600 slide-in" role="alert">
-              {error}
-            </p>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                className="text-sm text-red-600 font-medium"
+                role="alert"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                ⚠️ {error}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
-      </form>
+      </motion.form>
 
       {/* Divider */}
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
+          <div className="w-full border-t-2 border-gray-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or choose a category</span>
+          <span className="px-3 bg-white text-gray-500 font-semibold">or pick a favorite</span>
         </div>
       </div>
 
       {/* Predefined Category Buttons (Requirements 1.2, 1.3) */}
-      <div className="grid grid-cols-2 gap-3" role="group" aria-label="Predefined categories">
-        {PREDEFINED_CATEGORIES.map((category) => (
-          <button
-            key={category}
-            onClick={() => handlePredefinedSelect(category)}
+      <motion.div
+        className="grid grid-cols-2 gap-3"
+        role="group"
+        aria-label="Predefined categories"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {PREDEFINED_CATEGORIES.map(({ name, icon: Icon, gradient }) => (
+          <motion.button
+            key={name}
+            onClick={() => handlePredefinedSelect(name)}
             disabled={isLoading}
-            aria-label={`Select ${category} category`}
-            className="py-3 px-4 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-all hover:scale-105 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-4 focus:ring-purple-300"
+            aria-label={`Select ${name} category`}
+            className={`relative py-4 px-4 bg-gradient-to-br ${gradient} text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group`}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05, rotate: 2 }}
+            whileTap={{ scale: 0.95 }}
           >
-            {category}
-          </button>
+            <motion.div
+              className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"
+            />
+            <div className="relative flex flex-col items-center gap-2">
+              <Icon size={28} />
+              <span className="text-sm">{name}</span>
+            </div>
+          </motion.button>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };

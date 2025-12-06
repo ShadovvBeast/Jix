@@ -5,8 +5,9 @@
  */
 
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, Sparkles, ArrowRight, Loader } from 'lucide-react';
 import type { Question, PlayerAnswer, PlayerScore } from '../../../shared/types';
-import LoadingSpinner from './LoadingSpinner';
 
 interface ResultsDisplayProps {
   question: Question;
@@ -25,113 +26,225 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   isHost,
   onNextQuestion,
 }) => {
-  // Create a map of player answers for quick lookup
   const answerMap = new Map(
     playerAnswers.map((pa) => [pa.playerId, pa])
   );
 
   return (
-    <div className="w-full max-w-3xl mx-auto fade-in">
-      {/* Question Text */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900 text-center mb-2">
-          {question.text}
-        </h2>
-        <p className="text-center text-gray-600">Round Results</p>
-      </div>
+    <div className="w-full max-w-3xl mx-auto">
+      <motion.div
+        className="glass rounded-3xl shadow-2xl p-6 md:p-8 mb-6"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 100 }}
+      >
+        <div className="text-center mb-6">
+          <motion.div
+            initial={{ rotate: -180, scale: 0 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 150 }}
+          >
+            <Sparkles className="mx-auto text-yellow-500 mb-2" size={40} />
+          </motion.div>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
+            {question.text}
+          </h2>
+          <p className="text-gray-600 font-semibold">Round Results</p>
+        </div>
 
-      {/* Answer Options with Correct Answer Highlighted (Requirement 6.5) */}
-      <div className="space-y-3 mb-6" role="list" aria-label="Answer options">
-        {question.options.map((option, index) => {
-          const isCorrect = option.id === correctAnswerId;
+        <motion.div
+          className="space-y-3"
+          role="list"
+          aria-label="Answer options"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+              },
+            },
+          }}
+        >
+          {question.options.map((option, index) => {
+            const isCorrect = option.id === correctAnswerId;
 
-          return (
-            <div
-              key={option.id}
-              role="listitem"
-              className={`w-full p-4 rounded-lg font-medium text-left border-2 transition-all slide-in ${
-                isCorrect
-                  ? 'bg-green-100 border-green-500 ring-4 ring-green-200 pulse-success'
-                  : 'bg-gray-50 border-gray-200'
-              }`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="flex items-center">
-                <span className="flex-1">
-                  {option.text}
-                  {isCorrect && <span className="sr-only"> (Correct answer)</span>}
-                </span>
-                {isCorrect && (
-                  <span className="ml-2 text-green-700 font-bold text-xl" aria-hidden="true">
-                    ✓ Correct
+            return (
+              <motion.div
+                key={option.id}
+                role="listitem"
+                className={`p-5 rounded-2xl font-bold text-left border-2 transition-all relative overflow-hidden ${
+                  isCorrect
+                    ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-500 shadow-xl glow-green'
+                    : 'bg-gray-100 border-gray-200 text-gray-700'
+                }`}
+                variants={{
+                  hidden: { x: -50, opacity: 0 },
+                  visible: {
+                    x: 0,
+                    opacity: 1,
+                    transition: {
+                      type: 'spring',
+                      stiffness: 100,
+                    },
+                  },
+                }}
+                animate={isCorrect ? { scale: [1, 1.02, 1] } : {}}
+                transition={isCorrect ? { duration: 0.5, repeat: 2 } : {}}
+              >
+                <div className="flex items-center relative z-10">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-lg mr-4 ${
+                      isCorrect
+                        ? 'bg-white/30'
+                        : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    {String.fromCharCode(65 + index)}
+                  </div>
+                  <span className="flex-1 text-lg">
+                    {option.text}
+                    {isCorrect && <span className="sr-only"> (Correct answer)</span>}
                   </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  {isCorrect && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 200 }}
+                    >
+                      <CheckCircle size={28} />
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </motion.div>
 
-      {/* Participant Answer Status (Requirement 6.5, 7.3) */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+      <motion.div
+        className="glass rounded-3xl shadow-2xl p-6 md:p-8 mb-6"
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-4 text-center">
           Player Results
         </h3>
-        <div className="space-y-2" role="list" aria-label="Player results">
+        <motion.div
+          className="space-y-2"
+          role="list"
+          aria-label="Player results"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05,
+              },
+            },
+          }}
+        >
           {scores.map((playerScore, index) => {
             const playerAnswer = answerMap.get(playerScore.playerId);
             const isCorrect = playerAnswer?.isCorrect ?? false;
 
             return (
-              <div
+              <motion.div
                 key={playerScore.playerId}
                 role="listitem"
-                className={`flex items-center justify-between p-3 rounded-lg transition-all slide-in ${
-                  isCorrect ? 'bg-green-50' : 'bg-red-50'
+                className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
+                  isCorrect
+                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300'
+                    : 'bg-gradient-to-r from-red-100 to-pink-100 border-2 border-red-300'
                 }`}
-                style={{ animationDelay: `${index * 0.05}s` }}
                 aria-label={`${playerScore.playerName}: ${isCorrect ? 'correct' : 'incorrect'}, ${playerScore.score} points`}
+                variants={{
+                  hidden: { x: -30, opacity: 0 },
+                  visible: {
+                    x: 0,
+                    opacity: 1,
+                    transition: {
+                      type: 'spring',
+                      stiffness: 100,
+                    },
+                  },
+                }}
               >
-                <div className="flex items-center space-x-3">
-                  <span
-                    className={`text-2xl ${
-                      isCorrect ? 'text-green-600' : 'text-red-600'
-                    }`}
-                    aria-hidden="true"
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, delay: index * 0.05 }}
                   >
-                    {isCorrect ? '✓' : '✗'}
-                  </span>
-                  <span className="font-medium text-gray-900">
+                    {isCorrect ? (
+                      <CheckCircle className="text-green-600" size={28} />
+                    ) : (
+                      <XCircle className="text-red-600" size={28} />
+                    )}
+                  </motion.div>
+                  <span className="font-bold text-gray-900">
                     {playerScore.playerName}
                   </span>
                 </div>
-                <div className="text-lg font-bold text-gray-700">
+                <div className="text-xl font-black text-gray-700">
                   {playerScore.score} pts
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {/* Host Controls (Requirements 10.1, 10.2) */}
       {isHost ? (
-        <div className="text-center">
-          <button
+        <motion.div
+          className="text-center"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <motion.button
             onClick={onNextQuestion}
             aria-label="Start next question"
-            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all hover:scale-105 shadow-lg focus:ring-4 focus:ring-blue-300"
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg rounded-2xl shadow-2xl relative overflow-hidden group"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Next Question
-          </button>
-        </div>
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              Next Question
+              <ArrowRight size={24} />
+            </span>
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
+              initial={{ x: '-100%' }}
+              whileHover={{ x: 0 }}
+              transition={{ duration: 0.3 }}
+            />
+          </motion.button>
+        </motion.div>
       ) : (
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="inline-flex items-center gap-2 text-gray-600 font-medium">
-            <LoadingSpinner size="sm" />
+        <motion.div
+          className="text-center"
+          role="status"
+          aria-live="polite"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="inline-flex items-center gap-3 glass-dark text-white font-bold px-6 py-4 rounded-2xl shadow-lg">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            >
+              <Loader size={24} />
+            </motion.div>
             <p>Waiting for host to start the next question...</p>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

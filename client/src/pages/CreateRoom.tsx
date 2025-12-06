@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import CategorySelection from '../components/CategorySelection';
 
 const SERVER_URL = 'http://localhost:9188';
@@ -82,14 +83,23 @@ const CreateRoom: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+    <div className="min-h-screen animated-gradient flex items-center justify-center p-4">
+      <motion.div
+        className="max-w-md w-full glass rounded-3xl shadow-2xl p-8"
+        initial={{ scale: 0.8, opacity: 0, y: 50 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{
+          type: 'spring',
+          stiffness: 100,
+          damping: 15,
+        }}
+      >
         <CategorySelection
           onCategorySelect={handleCategorySelect}
           isLoading={isLoading}
           error={error}
         />
-      </div>
+      </motion.div>
     </div>
   );
 };

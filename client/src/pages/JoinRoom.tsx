@@ -6,6 +6,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { QrCode, ArrowLeft, LogIn } from 'lucide-react';
 
 const SERVER_URL = 'http://localhost:9188';
 
@@ -225,53 +227,98 @@ const JoinRoom: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8 fade-in">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-6">
+    <div className="min-h-screen animated-gradient flex items-center justify-center p-4">
+      <motion.div
+        className="max-w-md w-full glass rounded-3xl shadow-2xl p-8"
+        initial={{ scale: 0.8, opacity: 0, y: 50 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{
+          type: 'spring',
+          stiffness: 100,
+          damping: 15,
+        }}
+      >
+        <motion.h2
+          className="text-3xl md:text-4xl font-black text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+        >
           Join Room
-        </h2>
+        </motion.h2>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded slide-in" role="alert">
-            {error}
-          </div>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              className="mb-4 p-3 bg-red-100 border-2 border-red-400 text-red-700 rounded-2xl font-semibold"
+              role="alert"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {error}
+            </motion.div>
+          )}
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded slide-in" role="alert">
-            {successMessage}
-          </div>
-        )}
+          {successMessage && (
+            <motion.div
+              className="mb-4 p-3 bg-green-100 border-2 border-green-400 text-green-700 rounded-2xl font-semibold"
+              role="alert"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              {successMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* QR Scanner */}
         {showScanner ? (
-          <div className="mb-6">
-            <div className="relative bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: '4/3' }}>
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
                 playsInline
                 muted
               />
-              <div className="absolute inset-0 border-4 border-white/30 m-8 rounded-lg pointer-events-none" />
+              <motion.div
+                className="absolute inset-0 border-4 border-white/30 m-8 rounded-2xl pointer-events-none"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
             </div>
-            <button
+            <motion.button
               onClick={stopCamera}
-              className="w-full mt-4 py-2 px-4 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+              className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-2xl font-bold shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Cancel Scanning
-            </button>
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Position the QR code within the frame
+            </motion.button>
+            <p className="text-center text-sm text-gray-700 mt-2 font-semibold">
+              📱 Position the QR code within the frame
             </p>
-          </div>
+          </motion.div>
         ) : (
           <>
-            {/* Manual Room Code Entry */}
-            <form onSubmit={handleSubmit} className="mb-6">
-              <label htmlFor="roomCode" className="block text-sm font-medium text-gray-700 mb-2">
+            <motion.form
+              onSubmit={handleSubmit}
+              className="mb-6"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              <label htmlFor="roomCode" className="block text-sm font-bold text-gray-700 mb-2">
                 Room Code
               </label>
               <input
@@ -283,52 +330,99 @@ const JoinRoom: React.FC = () => {
                 maxLength={6}
                 aria-invalid={!!error}
                 aria-describedby={error ? "room-error" : undefined}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase transition-all"
+                className="w-full px-4 py-3 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 uppercase transition-all font-bold text-center text-2xl tracking-wider"
                 disabled={isLoading}
                 autoComplete="off"
               />
-              <button
+              <motion.button
                 type="submit"
                 disabled={isLoading || roomCode.length !== 6}
                 aria-label="Join room with entered code"
-                className="w-full mt-4 py-3 px-4 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-4 focus:ring-purple-300"
+                className="w-full mt-4 py-4 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-black text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+                whileHover={!isLoading && roomCode.length === 6 ? { scale: 1.02, y: -2 } : {}}
+                whileTap={!isLoading && roomCode.length === 6 ? { scale: 0.98 } : {}}
               >
-                {isLoading ? 'Joining...' : 'Join Room'}
-              </button>
-            </form>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      />
+                      Joining...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn size={20} />
+                      Join Room
+                    </>
+                  )}
+                </span>
+                {!isLoading && roomCode.length === 6 && (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: 0 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+            </motion.form>
 
-            {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className="w-full border-t-2 border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or</span>
+                <span className="px-3 bg-white text-gray-500 font-semibold">or</span>
               </div>
             </div>
 
-            {/* QR Code Scanner Button */}
-            <button
+            <motion.button
               onClick={startCamera}
               disabled={isLoading}
               aria-label="Scan QR code to join room"
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-4 focus:ring-blue-300"
+              className="w-full py-4 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-black text-lg shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              whileHover={!isLoading ? { scale: 1.02, y: -2 } : {}}
+              whileTap={!isLoading ? { scale: 0.98 } : {}}
             >
-              Scan QR Code
-            </button>
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <QrCode size={20} />
+                Scan QR Code
+              </span>
+              {!isLoading && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600"
+                  initial={{ x: '-100%' }}
+                  whileHover={{ x: 0 }}
+                  transition={{ duration: 0.3 }}
+                />
+              )}
+            </motion.button>
           </>
         )}
 
-        {/* Back to Home */}
-        <button
+        <motion.button
           onClick={() => navigate('/')}
           disabled={isLoading}
           aria-label="Go back to home page"
-          className="w-full mt-4 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all hover:scale-105 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:hover:scale-100 focus:ring-4 focus:ring-gray-300"
+          className="w-full mt-4 py-3 px-4 glass-dark text-white rounded-2xl font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Back to Home
-        </button>
-      </div>
+          <span className="flex items-center justify-center gap-2">
+            <ArrowLeft size={20} />
+            Back to Home
+          </span>
+        </motion.button>
+      </motion.div>
     </div>
   );
 };
