@@ -41,6 +41,19 @@ export const useWebSocket = ({
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Use refs for callbacks to avoid recreating connect function
+  const onMessageRef = useRef(onMessage);
+  const onOpenRef = useRef(onOpen);
+  const onCloseRef = useRef(onClose);
+  const onErrorRef = useRef(onError);
+  
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onCloseRef.current = onClose;
+    onErrorRef.current = onError;
+  }, [onMessage, onOpen, onClose, onError]);
 
   const connect = useCallback(() => {
     // Don't connect if URL is empty
@@ -57,13 +70,13 @@ export const useWebSocket = ({
         setError(null);
         setIsReconnecting(false);
         reconnectAttemptsRef.current = 0;
-        onOpen?.();
+        onOpenRef.current?.();
       };
 
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          onMessage?.(message);
+          onMessageRef.current?.(message);
         } catch (err) {
           console.error('Failed to parse WebSocket message:', err);
         }
@@ -71,12 +84,12 @@ export const useWebSocket = ({
 
       ws.onerror = (event) => {
         setError('WebSocket error occurred');
-        onError?.(event);
+        onErrorRef.current?.(event);
       };
 
       ws.onclose = () => {
         setIsConnected(false);
-        onClose?.();
+        onCloseRef.current?.();
 
         // Attempt to reconnect with exponential backoff
         if (reconnect && reconnectAttemptsRef.current < maxReconnectAttempts) {
@@ -97,7 +110,7 @@ export const useWebSocket = ({
       setError('Failed to create WebSocket connection');
       console.error('WebSocket connection error:', err);
     }
-  }, [url, onMessage, onOpen, onClose, onError, reconnect, reconnectInterval, maxReconnectAttempts]);
+  }, [url, reconnect, reconnectInterval, maxReconnectAttempts]);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -123,7 +136,19 @@ export const useWebSocket = ({
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (wsRef.current) {
-        wsRef.current.close();
+        const ws = wsRef.current;
+        
+        // Remove event listeners first to prevent them from firing during cleanup
+        ws.onopen = null;
+        ws.onclose = null;
+        ws.onerror = null;
+        ws.onmessage = null;
+        
+        // Only close if connection is already open (not connecting)
+        // This prevents the browser warning about closing before connection is established
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
       }
     };
   }, [connect]);
