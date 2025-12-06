@@ -9,6 +9,7 @@ export default defineConfig({
   },
   server: {
     port: 9144,
+    allowedHosts: ['jix.sb0.tech'],
     proxy: {
       '/api': {
         target: 'http://localhost:9188',
